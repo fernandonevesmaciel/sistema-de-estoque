@@ -1,0 +1,11 @@
+body {
+    font-family: Arial, sans-serif; /* Define a fonte do texto */
+    background-color: #f0f0f0; /* Define a cor de fundo */
+    color: #333; /* Define a cor do texto */
+    text-align: center; /* Centraliza todo o texto */
+    padding-top: 50px; /* Adiciona um espaço no topo da página */
+}
+
+h1 {
+    color: #0056b3; /* Define a cor do título */
+}
