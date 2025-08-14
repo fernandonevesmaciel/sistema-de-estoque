@@ -193,3 +193,103 @@ table th {
     justify-content: center; /* Centraliza horizontalmente */
     margin-top: 20px;       /* Adiciona um espaço acima do botão */
 }
+/* ========================================= */
+/* Media Queries - Otimização para Mobile */
+/* ========================================= */
+
+/* Para telas menores que 768px (tablets e celulares) */
+@media (max-width: 768px) {
+  /* Altera a estrutura do cabeçalho */
+  header nav {
+    flex-direction: column; /* Coloca os itens um abaixo do outro */
+    gap: 10px; /* Adiciona espaçamento entre eles */
+  }
+
+  header h1 {
+    font-size: 18px; /* Diminui o tamanho do título */
+  }
+
+  .logout-button {
+    width: 100%; /* O botão ocupa a largura total */
+    text-align: center; /* Centraliza o texto */
+  }
+
+  /* Ajusta o container principal */
+  .dashboard-container {
+    margin: 15px; /* Diminui as margens laterais */
+    padding: 15px; /* Diminui o padding interno */
+  }
+
+  /* Oculta os títulos para economizar espaço e usa o header do tab */
+  .dashboard-container h2,
+  .dashboard-container h3 {
+    text-align: center; /* Alinha os títulos para a esquerda */
+    margin-bottom: 10px; /* Reduz o espaçamento */
+  }
+  
+  /* Ajusta os formulários para uma única coluna */
+  .product-form {
+    grid-template-columns: 1fr; /* Força uma coluna única */
+    gap: 10px;
+  }
+
+  /* Tabelas */
+  .table-container {
+    padding: 10px;
+    overflow-x: auto; /* Adiciona scroll horizontal se a tabela for muito larga */
+    -webkit-overflow-scrolling: touch; /* Melhora a rolagem em iOS */
+    
+  }
+
+  .inventory-table,
+  .history-table {
+    white-space:wrap; /* Impede que o conteúdo das células quebre */
+    width: 50px; /* Força uma largura mínima para a tabela, evitando quebra */
+    display: block; /* Permite a rolagem horizontal */
+    /* margin-left: 50px; */
+  }
+
+  .inventory-table th,
+  .history-table th,
+  .inventory-table td,
+  .history-table td {
+    font-size: 10px; /* Diminui o tamanho da fonte */
+    padding: 8px; /* Diminui o padding da célula */
+  }
+
+  /* Botões de abas */
+  .tabs {
+    flex-direction: column; /* Botões das abas um abaixo do outro */
+  }
+
+  .tab-button {
+    padding: 12px; /* Aumenta a área de clique */
+  }
+
+  /* Botões de ação dentro da tabela */
+  .action-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 5px; /* Adiciona um pequeno espaçamento entre os botões */
+  }
+
+  .action-buttons button {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+}
+
+/* ========================================= */
+/* Para telas menores que 480px (celulares pequenos) */
+/* ========================================= */
+
+@media (max-width: 480px) {
+  header {
+    padding: 10px 15px;
+  }
+
+  .dashboard-container {
+    padding: 10px;
+  }
+}
