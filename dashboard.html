@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Controle de Estoque</title>
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
 </head>
 <body>
     <header>
@@ -18,39 +18,33 @@
         <h2>Gerenciar Produtos</h2>
         <form id="productForm" class="product-form">
             <input type="hidden" id="productId">
-
             <div class="form-group">
                 <label for="productName">Nome do Produto:</label>
                 <input type="text" id="productName" required placeholder="Ex: Parafuso Philips 5mm">
             </div>
-
             <div class="form-group">
                 <label for="productQuantity">Quantidade:</label>
                 <input type="number" id="productQuantity" required min="0" value="0">
             </div>
-
             <div class="form-group">
                 <label for="productLocation">Localização:</label>
                 <input type="text" id="productLocation" required placeholder="Ex: Prateleira A1, Caixa 3">
             </div>
-
-            <button type="submit" id="submitButton">Adicionar Produto</button>
-
+            <div class="button-container">
+        <button type="submit" id="addProductBtn">Adicionar Produto</button>
+    </div>
         </form>
 
         <p id="formMessage"></p>
-
-        <p id="formMessage"></p>
-
         <div class="table-container">
             <h3>Estoque Atual</h3>
             <table class="inventory-table">
                 <thead>
-                        <tr>
-                <th>Nome do Produto</th>
-                <th>Quantidade</th>
-                <th>Localização</th>
-                <th>Ações</th>
+                    <tr>
+                        <th>Nome do Produto</th>
+                        <th>Quantidade</th>
+                        <th>Localização</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="inventoryTableBody">
@@ -58,67 +52,61 @@
                         <td colspan="4" class="no-products">Nenhum produto cadastrado.</td>
                     </tr>
                 </tbody>
-                 </table>
+            </table>
         </div>
         <div class="tabs-container">
-    <div class="tabs">
-        <button class="tab-button active" onclick="showTab('withdrawals')">Registrar Retirada</button>
-        <button class="tab-button" onclick="showTab('users')">Gerenciar Usuários</button>
-    </div>
-
-    <div id="withdrawals" class="tab-content active">
-        <h3>Registrar Retirada de Produto</h3>
-        <form id="withdrawalForm" class="product-form">
-            <div class="form-group">
-                <label for="withdrawalProductName">Produto:</label>
-                <select id="withdrawalProductName" required></select>
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('withdrawals')">Registrar Retirada</button>
+                <button class="tab-button" onclick="showTab('users')">Gerenciar Usuários</button>
             </div>
-
-            <div class="form-group">
-                <label for="withdrawalQuantity">Quantidade:</label>
-                <input type="number" id="withdrawalQuantity" required min="1" value="1">
+            <div id="withdrawals" class="tab-content active">
+                <h3>Registrar Retirada de Produto</h3>
+                <form id="withdrawalForm" class="product-form">
+                    <div class="form-group">
+                        <label for="withdrawalProductName">Produto:</label>
+                        <select id="withdrawalProductName" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="withdrawalQuantity">Quantidade:</label>
+                        <input type="number" id="withdrawalQuantity" required min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="withdrawalLocation">Local de Uso:</label>
+                        <input type="text" id="withdrawalLocation" required placeholder="Ex: Montagem, Manutenção">
+                    </div>
+                    <button type="submit">Registrar Retirada</button>
+                </form>
             </div>
-
-            <div class="form-group">
-                <label for="withdrawalLocation">Local de Uso:</label>
-                <input type="text" id="withdrawalLocation" required placeholder="Ex: Montagem, Manutenção">
+            <div id="users" class="tab-content" style="display: none;">
+                <h3>Gerenciar Usuários</h3>
+                <form id="userForm" class="product-form">
+                    <input type="hidden" id="userId">
+                    <div class="form-group">
+                        <label for="userName">Nome:</label>
+                        <input type="text" id="userName" required placeholder="Nome Completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">E-mail:</label>
+                        <input type="email" id="userEmail" required placeholder="email@exemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="userPassword">Senha:</label>
+                        <input type="password" id="userPassword" required placeholder="Crie uma senha para o usuário">
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole">Nível de Acesso:</label>
+                        <select id="userRole" required>
+                            <option value="common">Usuário Comum</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="userSubmitButton">Adicionar Usuário</button>
+                </form>
             </div>
-
-            <button type="submit">Registrar Retirada</button>
-        </form>
-    </div>
-
-    <div id="users" class="tab-content" style="display: none;">
-        <h3>Gerenciar Usuários</h3>
-        <form id="userForm" class="product-form">
-            <input type="hidden" id="userId">
-            
-            <div class="form-group">
-                <label for="userName">Nome:</label>
-                <input type="text" id="userName" required placeholder="Nome Completo">
-            </div>
-
-            <div class="form-group">
-                <label for="userEmail">E-mail:</label>
-                <input type="email" id="userEmail" required placeholder="email@exemplo.com">
-            </div>
-
-            <div class="form-group">
-                <label for="userRole">Nível de Acesso:</label>
-                <select id="userRole" required>
-                    <option value="common">Usuário Comum</option>
-                    <option value="admin">Administrador</option>
-                </select>
-            </div>
-            
-            <button type="submit" id="userSubmitButton">Adicionar Usuário</button>
-        </form>
-        
         </div>
-        </div>
-        <div class="table-container">
+        <div id="historyTableContainer" class="table-container">
             <h3>Histórico de Movimentações</h3>
-                <table class="history-table">
+            <table class="history-table">
                 <thead>
                     <tr>
                         <th>Data</th>
@@ -129,11 +117,18 @@
                     </tr>
                 </thead>
                 <tbody id="historyTableBody">
-                    </tbody>
+                    <tr>
+                        <td colspan="5" class="no-products">Nenhuma movimentação registrada.</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
-        </main>
+    </main>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
     <script src="scripts/main.js"></script>
 </body>
 </html>

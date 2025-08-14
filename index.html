@@ -4,49 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Controle de Estoque</title>
+    <link rel="stylesheet" href="styles/index.css">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <h1>Controle de Estoque</h1>
+            <form id="loginForm" class="login-form">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <label for="email">E-mail:</label>
+                    <input type="email" id="email" required placeholder="Digite seu e-mail">
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" required placeholder="Digite sua senha">
+                </div>
+                <p id="loginMessage"></p>
+                <button type="submit">Entrar</button>
+            </form>
+            <footer>Desenvolvido por Fernando Maciel</footer>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script>
-        // Substitua este objeto pelo que você copiou do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCUvbA1o5k-2QmXNZ8GcCWSzpLyMe7EYvg",
-            authDomain: "controle-de-estoque-app-8382c.firebaseapp.com",
-            projectId: "controle-de-estoque-app-8382c",
-            storageBucket: "controle-de-estoque-app-8382c.firebasestorage.app",
-            messagingSenderId: "110865869405",
-            appId: "1:110865869405:web:4d4ef71dbf06ddb834bbb4",
-            measurementId: "G-3N3YYRJ21F"
-         };
-        
-        // Inicializa o Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-    </script>
-
-    <link rel="stylesheet" href="styles/main.css">
-</head>
-<body>
-
-    <div class="login-container">
-        <form id="loginForm" class="login-form">
-            <h2>Login</h2>
-            <div class="form-group">
-                <label for="email">E-mail:</label>
-                <input type="email" id="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Senha:</label>
-                <input type="password" id="password" required>
-            </div>
-            <p id="loginMessage"></p>
-            <button type="submit">Entrar</button>
-        </form>
-    </div>
-
     <script src="scripts/main.js"></script>
-
 </body>
 </html>
