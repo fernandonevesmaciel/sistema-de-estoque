@@ -193,6 +193,14 @@ table th {
     justify-content: center; /* Centraliza horizontalmente */
     margin-top: 20px;       /* Adiciona um espaço acima do botão */
 }
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 5px; /* Adiciona um pequeno espaçamento entre os botões */
+   
+  }
+
 /* ========================================= */
 /* Media Queries - Otimização para Mobile */
 /* ========================================= */
@@ -271,6 +279,7 @@ table th {
     display: flex;
     justify-content: space-around;
     gap: 5px; /* Adiciona um pequeno espaçamento entre os botões */
+   
   }
 
   .action-buttons button {

@@ -60,10 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (productForm) productForm.style.display = 'none';
                 if (userTabButton) userTabButton.style.display = 'none';
                 if (historyContainer) historyContainer.style.display = 'none';
-            } else {
+            } else { // Este é o bloco que estava faltando ou incompleto
                 if (productForm) productForm.style.display = 'block';
                 if (userTabButton) userTabButton.style.display = 'block';
-                if (historyContainer) historyContainer.style.display = 'block';
+                if (historyContainer) historyContainer.style.display = 'block'; // Adicione esta linha
             }
         }
 
@@ -218,12 +218,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Busca o nome do usuário no Firestore antes de registrar a retirada
                     db.collection('users').doc(auth.currentUser.uid).get()
-                        .then(userDoc => {
-                            let userName = auth.currentUser.email; // Fallback para o e-mail
-                            if (userDoc.exists) {
-                                userName = userDoc.data().name;
-                            }
-
+                    .then(userDoc => {
+                        let userName = auth.currentUser.email; // Valor padrão: e-mail
+                        if (userDoc.exists && userDoc.data().name) { // Verifique se o doc existe E se o campo 'name' existe
+                            userName = userDoc.data().name;
+                        }
                             // Atualiza o estoque
                             db.collection('products').doc(productId).update({
                                 quantidade: newQuantity
