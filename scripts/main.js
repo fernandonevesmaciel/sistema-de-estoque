@@ -60,13 +60,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (productForm) productForm.style.display = 'none';
                 if (userTabButton) userTabButton.style.display = 'none';
                 if (historyContainer) historyContainer.style.display = 'none';
-            } else { // Este é o bloco que estava faltando ou incompleto
+            } else {
                 if (productForm) productForm.style.display = 'block';
                 if (userTabButton) userTabButton.style.display = 'block';
-                if (historyContainer) historyContainer.style.display = 'block'; // Adicione esta linha
+                if (historyContainer) historyContainer.style.display = 'block';
             }
         }
 
+        // ⭐ NOVO CÓDIGO DE MIGRAÇÃO CORRIGIDO
+        async function migrateHistoryDates() {
+            console.log("Iniciando a migração do histórico...");
+            const historyRef = db.collection('history');
+            const snapshot = await historyRef.get();
+            const batch = db.batch();
+            let migratedCount = 0;
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.date && typeof data.date === 'string') {
+                    // Formato "DD/MM/YYYY, HH:MM:SS"
+                    const parts = data.date.split(', ');
+                    if (parts.length === 2) {
+                        const dateParts = parts[0].split('/');
+                        const timeParts = parts[1].split(':');
+                        
+                        const day = parseInt(dateParts[0], 10);
+                        const month = parseInt(dateParts[1], 10) - 1; // Mês é de 0 a 11
+                        const year = parseInt(dateParts[2], 10);
+                        const hour = parseInt(timeParts[0], 10);
+                        const minute = parseInt(timeParts[1], 10);
+                        const second = parseInt(timeParts[2], 10);
+                        
+                        const newDate = new Date(year, month, day, hour, minute, second);
+                        
+                        if (!isNaN(newDate.getTime())) {
+                            const newTimestamp = firebase.firestore.Timestamp.fromDate(newDate);
+                            batch.update(doc.ref, { date: newTimestamp });
+                            migratedCount++;
+                        } else {
+                            console.warn("Não foi possível migrar a data do documento:", doc.id, " - Formato inválido:", data.date);
+                        }
+                    } else {
+                        console.warn("Não foi possível migrar a data do documento:", doc.id, " - Formato inesperado:", data.date);
+                    }
+                }
+            });
+
+            if (migratedCount > 0) {
+                await batch.commit();
+                console.log(`✅ ${migratedCount} documentos do histórico migrados com sucesso.`);
+            } else {
+                console.log("Nenhum documento do histórico precisou ser migrado. O formato já está correto.");
+            }
+        }
+        
+        // ⭐ CHAMADA PARA A FUNÇÃO DE MIGRAÇÃO
+        // Chame a função antes de buscar os dados.
+        // DEPOIS DE MIGRAR, COMENTE OU REMOVA ESTA CHAMADA.
+        migrateHistoryDates().then(() => {
+            fetchDataAndRender();
+        });
+        
         function fetchDataAndRender() {
             db.collection('products').get().then(snapshot => {
                 products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -75,7 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Erro ao carregar produtos:", error);
             });
 
-            db.collection('history').get().then(snapshot => {
+            // A consulta com orderBy já está correta, pois agora todos os dados terão o tipo Timestamp.
+            db.collection('history').orderBy('date', 'desc').get().then(snapshot => {
                 history = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderHistory();
             }).catch(error => {
@@ -84,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             db.collection('users').get().then(snapshot => {
                 users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Aqui você pode adicionar uma função para renderizar a tabela de usuários, se desejar
             }).catch(error => {
                 console.error("Erro ao carregar usuários:", error);
             });
@@ -133,7 +187,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             history.forEach(item => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${item.date}</td><td>${item.user}</td><td>${item.productName}</td><td>${item.quantity}</td><td>${item.location}</td>`;
+                let formattedDate = 'N/A';
+                if (item.date && typeof item.date.toDate === 'function') {
+                    formattedDate = item.date.toDate().toLocaleString();
+                } else {
+                    console.warn("Documento com data em formato incorreto. Dados do item:", item);
+                    formattedDate = 'Erro de Data';
+                }
+                
+                row.innerHTML = `<td>${formattedDate}</td><td>${item.user}</td><td>${item.productName}</td><td>${item.quantity}</td><td>${item.location}</td>`;
                 historyTableBody.appendChild(row);
             });
         }
@@ -216,45 +278,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (productToUpdate && productToUpdate.quantidade >= withdrawalQuantity) {
                     const newQuantity = productToUpdate.quantidade - withdrawalQuantity;
 
-                    // Busca o nome do usuário no Firestore antes de registrar a retirada
                     db.collection('users').doc(auth.currentUser.uid).get()
                     .then(userDoc => {
-                        let userName = auth.currentUser.email; // Valor padrão: e-mail
-                        if (userDoc.exists && userDoc.data().name) { // Verifique se o doc existe E se o campo 'name' existe
+                        let userName = auth.currentUser.email;
+                        if (userDoc.exists && userDoc.data().name) {
                             userName = userDoc.data().name;
                         }
-                            // Atualiza o estoque
-                            db.collection('products').doc(productId).update({
-                                quantidade: newQuantity
-                            }).then(() => {
-                                console.log("Estoque atualizado com sucesso!");
+                        
+                        db.collection('products').doc(productId).update({
+                            quantidade: newQuantity
+                        }).then(() => {
+                            console.log("Estoque atualizado com sucesso!");
 
-                                // Registra o item no histórico usando o nome do usuário
-                                const newHistoryItem = {
-                                    date: new Date().toLocaleString(),
-                                    user: userName,
-                                    productName: productToUpdate.nome,
-                                    quantity: withdrawalQuantity,
-                                    location: withdrawalLocation
-                                };
+                            const newHistoryItem = {
+                                date: firebase.firestore.Timestamp.now(),
+                                user: userName,
+                                productName: productToUpdate.nome,
+                                quantity: withdrawalQuantity,
+                                location: withdrawalLocation
+                            };
 
-                                db.collection('history').add(newHistoryItem)
-                                    .then(() => {
-                                        alert("Retirada registrada com sucesso!");
-                                        fetchDataAndRender();
-                                    })
-                                    .catch(error => {
-                                        console.error("Erro ao adicionar histórico:", error);
-                                    });
-                            }).catch(error => {
-                                console.error("Erro ao atualizar estoque:", error);
-                            });
-                        })
-                        .catch(error => {
-                            console.error("Erro ao buscar informações do usuário:", error);
-                            alert("Erro ao registrar a retirada. Verifique o console para mais detalhes.");
+                            db.collection('history').add(newHistoryItem)
+                                .then(() => {
+                                    alert("Retirada registrada com sucesso!");
+                                    fetchDataAndRender();
+                                })
+                                .catch(error => {
+                                    console.error("Erro ao adicionar histórico:", error);
+                                });
+                        }).catch(error => {
+                            console.error("Erro ao atualizar estoque:", error);
                         });
-
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar informações do usuário:", error);
+                        alert("Erro ao registrar a retirada. Verifique o console para mais detalhes.");
+                    });
                 } else {
                     alert("Erro: Quantidade insuficiente no estoque!");
                 }
@@ -304,19 +363,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 db.collection('users').doc(user.uid).get()
                     .then(doc => {
-                        if (doc.exists) {
-                            // Este bloco é executado quando o documento é encontrado
-                            currentUserRole = doc.data().role;
-                            console.log("Nível de acesso do usuário:", currentUserRole);
-                            setupUI(currentUserRole);
-                            fetchDataAndRender();
-                        } else {
-                            // Este bloco é executado quando o documento NÃO é encontrado
-                            const user = auth.currentUser;
-                            alert(`Erro! Documento do usuário não encontrado. UID do usuário logado: ${user.uid}`);
-                            console.error("Documento do usuário não encontrado no Firestore!");
-                            auth.signOut();
-                        }
+                        if (doc.exists) {
+                            currentUserRole = doc.data().role;
+                            console.log("Nível de acesso do usuário:", currentUserRole);
+                            setupUI(currentUserRole);
+                            fetchDataAndRender();
+                        } else {
+                            const user = auth.currentUser;
+                            alert(`Erro! Documento do usuário não encontrado. UID do usuário logado: ${user.uid}`);
+                            console.error("Documento do usuário não encontrado no Firestore!");
+                            auth.signOut();
+                        }
                     })
                     .catch(error => {
                         console.error("Erro ao buscar nível de acesso:", error);

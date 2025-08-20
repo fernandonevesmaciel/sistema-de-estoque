@@ -154,7 +154,7 @@ table th {
 
 .tabs {
   display: flex;
-  gap: 10px;
+  gap: 5px;
   margin-bottom: 15px;
 }
 
@@ -218,7 +218,7 @@ table th {
   }
 
   .logout-button {
-    width: 100%; /* O botão ocupa a largura total */
+    width: 80%; /* O botão ocupa a largura total */
     text-align: center; /* Centraliza o texto */
   }
 
@@ -262,7 +262,7 @@ table th {
   .inventory-table td,
   .history-table td {
     font-size: 10px; /* Diminui o tamanho da fonte */
-    padding: 8px; /* Diminui o padding da célula */
+    padding:  8px; /* Diminui o padding da célula */
   }
 
   /* Botões de abas */
@@ -301,4 +301,5 @@ table th {
   .dashboard-container {
     padding: 10px;
   }
+
 }
