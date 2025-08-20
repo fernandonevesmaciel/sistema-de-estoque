@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (productForm) productForm.style.display = 'none';
                 if (userTabButton) userTabButton.style.display = 'none';
                 if (historyContainer) historyContainer.style.display = 'none';
+
             } else {
                 if (productForm) productForm.style.display = 'block';
                 if (userTabButton) userTabButton.style.display = 'block';
@@ -67,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // ⭐ NOVO CÓDIGO DE MIGRAÇÃO CORRIGIDO
         async function migrateHistoryDates() {
             console.log("Iniciando a migração do histórico...");
             const historyRef = db.collection('history');
@@ -78,14 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (data.date && typeof data.date === 'string') {
-                    // Formato "DD/MM/YYYY, HH:MM:SS"
                     const parts = data.date.split(', ');
                     if (parts.length === 2) {
                         const dateParts = parts[0].split('/');
                         const timeParts = parts[1].split(':');
                         
                         const day = parseInt(dateParts[0], 10);
-                        const month = parseInt(dateParts[1], 10) - 1; // Mês é de 0 a 11
+                        const month = parseInt(dateParts[1], 10) - 1; 
                         const year = parseInt(dateParts[2], 10);
                         const hour = parseInt(timeParts[0], 10);
                         const minute = parseInt(timeParts[1], 10);
@@ -115,12 +114,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // ⭐ CHAMADA PARA A FUNÇÃO DE MIGRAÇÃO
-        // Chame a função antes de buscar os dados.
         // DEPOIS DE MIGRAR, COMENTE OU REMOVA ESTA CHAMADA.
-        migrateHistoryDates().then(() => {
-            fetchDataAndRender();
-        });
+        //migrateHistoryDates().then(() => {
+        //    fetchDataAndRender();
+        //});
         
+        // SE A MIGRAÇÃO JÁ FOI FEITA, USE APENAS ESTA LINHA:
+        fetchDataAndRender();
+        
+
         function fetchDataAndRender() {
             db.collection('products').get().then(snapshot => {
                 products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -129,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Erro ao carregar produtos:", error);
             });
 
-            // A consulta com orderBy já está correta, pois agora todos os dados terão o tipo Timestamp.
             db.collection('history').orderBy('date', 'desc').get().then(snapshot => {
                 history = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderHistory();
@@ -162,21 +163,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // ⭐ ALTERAÇÕES NA FUNÇÃO renderProducts()
         function renderProducts() {
             if (!inventoryTableBody) return;
             inventoryTableBody.innerHTML = '';
+
+            // Oculta o cabeçalho da coluna de ações para usuários comuns
+            const actionsHeader = document.getElementById('actionsHeader');
+            if (actionsHeader) {
+                if (currentUserRole === 'common') {
+                    actionsHeader.style.display = 'none';
+                } else {
+                    actionsHeader.style.display = 'table-cell';
+                }
+            }
+        
             if (products.length === 0) {
-                inventoryTableBody.innerHTML = `<tr><td colspan="4" class="no-products">Nenhum produto cadastrado.</td></tr>`;
+                // Ajusta o colspan da mensagem para 3 se a coluna de ações estiver oculta
+                const colspanValue = currentUserRole === 'admin' ? 4 : 3;
+                inventoryTableBody.innerHTML = `<tr><td colspan="${colspanValue}" class="no-products">Nenhum produto cadastrado.</td></tr>`;
                 return;
             }
+        
             products.forEach(product => {
                 const row = document.createElement('tr');
-                const actionButtonsHTML = currentUserRole === 'admin' ? `<td><div class="action-buttons"><button class="edit-button" onclick="editProduct('${product.id}')">Editar</button><button class="delete-button" onclick="deleteProduct('${product.id}')">Excluir</button></div></td>` : `<td></td>`;
-                row.innerHTML = `<td>${product.nome}</td><td>${product.quantidade}</td><td>${product.localizacao}</td>${actionButtonsHTML}`;
+                let rowContent = `<td>${product.nome}</td><td>${product.quantidade}</td><td>${product.localizacao}</td>`;
+
+                // Adiciona a célula de ações SOMENTE se o usuário for 'admin'
+                if (currentUserRole === 'admin') {
+                    rowContent += `<td><div class="action-buttons"><button class="edit-button" onclick="editProduct('${product.id}')">Editar</button><button class="delete-button" onclick="deleteProduct('${product.id}')">Excluir</button></div></td>`;
+                }
+            
+                row.innerHTML = rowContent;
                 inventoryTableBody.appendChild(row);
             });
             populateProductDropdown();
-        }
+        }       
 
         function renderHistory() {
             if (!historyTableBody) return;

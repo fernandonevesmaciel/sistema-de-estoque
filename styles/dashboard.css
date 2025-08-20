@@ -249,13 +249,22 @@ table th {
     
   }
 
-  .inventory-table,
-  .history-table {
-    white-space:wrap; /* Impede que o conteúdo das células quebre */
-    width: 50px; /* Força uma largura mínima para a tabela, evitando quebra */
-    display: block; /* Permite a rolagem horizontal */
-    /* margin-left: 50px; */
+  table th,
+  table td {
+        font-size: 10px; 
+        padding: 8px; 
   }
+
+  #inventoryTable,
+  #historyTable {
+      width: 100%; /* Força a tabela a ocupar a largura total do container */
+      table-layout: fixed; /* Distribui as colunas de forma igual */
+  }
+
+  #inventoryTable th,
+    #inventoryTable td {
+        word-wrap: break-word; /* Evita que o conteúdo transborde */
+    }
 
   .inventory-table th,
   .history-table th,
