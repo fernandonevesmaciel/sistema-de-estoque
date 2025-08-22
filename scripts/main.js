@@ -60,18 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (productForm) productForm.style.display = 'none';
                 if (userTabButton) userTabButton.style.display = 'none';
                 if (historyContainer) historyContainer.style.display = 'none';
-                if (userTabContent) userTabContent.style.display = 'none'; // Garante que a tab de usuários não seja visível
+                if (userTabContent) userTabContent.style.display = 'none';
             } else { // role === 'admin'
                 if (productForm) productForm.style.display = 'block';
                 if (userTabButton) userTabButton.style.display = 'block';
                 if (historyContainer) historyContainer.style.display = 'block';
-                // Assegura que o formulário de usuários não apareça por padrão
-                if (userTabContent) userTabContent.style.display = 'none'; 
+                if (userTabContent) userTabContent.style.display = 'none';
             }
         }
         
-        // ⭐ FUNÇÃO PARA MIGRAR DATAS (DEVE SER EXECUTADA APENAS UMA VEZ)
-        // Se você já executou a migração, pode comentar ou remover esta função.
         async function migrateHistoryDates() {
             console.log("Iniciando a migração do histórico...");
             const historyRef = db.collection('history');
@@ -117,9 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // ⭐ NOVO CÓDIGO - LISTENERS EM TEMPO REAL ⭐
         function setupRealtimeListeners() {
-            // Listener para a coleção 'products'
             db.collection('products').onSnapshot(snapshot => {
                 console.log("Produtos atualizados em tempo real!");
                 products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -128,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Erro ao escutar produtos:", error);
             });
 
-            // Listener para a coleção 'history'
             db.collection('history').orderBy('date', 'desc').onSnapshot(snapshot => {
                 console.log("Histórico atualizado em tempo real!");
                 history = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -137,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Erro ao escutar histórico:", error);
             });
             
-            // Opcional: Listener para a coleção 'users'
             db.collection('users').onSnapshot(snapshot => {
                 console.log("Usuários atualizados em tempo real!");
                 users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -376,14 +369,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Usuário logado:", user.email);
                 console.log("UID do usuário logado:", user.uid);
 
+                // Inicia os listeners de tempo real imediatamente após a autenticação
+                setupRealtimeListeners();
+
                 db.collection('users').doc(user.uid).get()
                     .then(doc => {
                         if (doc.exists) {
                             currentUserRole = doc.data().role;
                             console.log("Nível de acesso do usuário:", currentUserRole);
                             setupUI(currentUserRole);
-                            // Inicia os listeners de tempo real após carregar o nível de acesso
-                            setupRealtimeListeners();
                         } else {
                             const user = auth.currentUser;
                             alert(`Erro! Documento do usuário não encontrado. UID do usuário logado: ${user.uid}`);
