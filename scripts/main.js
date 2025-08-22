@@ -1,5 +1,4 @@
 // --- Inicialização do Firebase (NO TOPO DO ARQUIVO) ---
-// Substitua este objeto pelo que você copiou do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCUvbA1o5k-2QmXNZ8GcCWSzpLyMe7EYvg",
     authDomain: "controle-de-estoque-app-8382c.firebaseapp.com",
@@ -55,19 +54,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const productForm = document.getElementById('productForm');
             const userTabButton = document.querySelector('button[onclick="showTab(\'users\')"]');
             const historyContainer = document.getElementById('historyTableContainer');
+            const userTabContent = document.getElementById('users');
 
             if (role === 'common') {
                 if (productForm) productForm.style.display = 'none';
                 if (userTabButton) userTabButton.style.display = 'none';
                 if (historyContainer) historyContainer.style.display = 'none';
-
-            } else {
+                if (userTabContent) userTabContent.style.display = 'none'; // Garante que a tab de usuários não seja visível
+            } else { // role === 'admin'
                 if (productForm) productForm.style.display = 'block';
                 if (userTabButton) userTabButton.style.display = 'block';
                 if (historyContainer) historyContainer.style.display = 'block';
+                // Assegura que o formulário de usuários não apareça por padrão
+                if (userTabContent) userTabContent.style.display = 'none'; 
             }
         }
-
+        
+        // ⭐ FUNÇÃO PARA MIGRAR DATAS (DEVE SER EXECUTADA APENAS UMA VEZ)
+        // Se você já executou a migração, pode comentar ou remover esta função.
         async function migrateHistoryDates() {
             console.log("Iniciando a migração do histórico...");
             const historyRef = db.collection('history');
@@ -113,35 +117,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // ⭐ CHAMADA PARA A FUNÇÃO DE MIGRAÇÃO
-        // DEPOIS DE MIGRAR, COMENTE OU REMOVA ESTA CHAMADA.
-        //migrateHistoryDates().then(() => {
-        //    fetchDataAndRender();
-        //});
-        
-        // SE A MIGRAÇÃO JÁ FOI FEITA, USE APENAS ESTA LINHA:
-        fetchDataAndRender();
-        
-
-        function fetchDataAndRender() {
-            db.collection('products').get().then(snapshot => {
+        // ⭐ NOVO CÓDIGO - LISTENERS EM TEMPO REAL ⭐
+        function setupRealtimeListeners() {
+            // Listener para a coleção 'products'
+            db.collection('products').onSnapshot(snapshot => {
+                console.log("Produtos atualizados em tempo real!");
                 products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderProducts();
-            }).catch(error => {
-                console.error("Erro ao carregar produtos:", error);
+            }, error => {
+                console.error("Erro ao escutar produtos:", error);
             });
 
-            db.collection('history').orderBy('date', 'desc').get().then(snapshot => {
+            // Listener para a coleção 'history'
+            db.collection('history').orderBy('date', 'desc').onSnapshot(snapshot => {
+                console.log("Histórico atualizado em tempo real!");
                 history = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderHistory();
-            }).catch(error => {
-                console.error("Erro ao carregar histórico:", error);
+            }, error => {
+                console.error("Erro ao escutar histórico:", error);
             });
             
-            db.collection('users').get().then(snapshot => {
+            // Opcional: Listener para a coleção 'users'
+            db.collection('users').onSnapshot(snapshot => {
+                console.log("Usuários atualizados em tempo real!");
                 users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            }).catch(error => {
-                console.error("Erro ao carregar usuários:", error);
+            }, error => {
+                console.error("Erro ao escutar usuários:", error);
             });
         }
 
@@ -163,12 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // ⭐ ALTERAÇÕES NA FUNÇÃO renderProducts()
         function renderProducts() {
             if (!inventoryTableBody) return;
             inventoryTableBody.innerHTML = '';
 
-            // Oculta o cabeçalho da coluna de ações para usuários comuns
             const actionsHeader = document.getElementById('actionsHeader');
             if (actionsHeader) {
                 if (currentUserRole === 'common') {
@@ -179,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         
             if (products.length === 0) {
-                // Ajusta o colspan da mensagem para 3 se a coluna de ações estiver oculta
                 const colspanValue = currentUserRole === 'admin' ? 4 : 3;
                 inventoryTableBody.innerHTML = `<tr><td colspan="${colspanValue}" class="no-products">Nenhum produto cadastrado.</td></tr>`;
                 return;
@@ -189,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = document.createElement('tr');
                 let rowContent = `<td>${product.nome}</td><td>${product.quantidade}</td><td>${product.localizacao}</td>`;
 
-                // Adiciona a célula de ações SOMENTE se o usuário for 'admin'
                 if (currentUserRole === 'admin') {
                     rowContent += `<td><div class="action-buttons"><button class="edit-button" onclick="editProduct('${product.id}')">Editar</button><button class="delete-button" onclick="deleteProduct('${product.id}')">Excluir</button></div></td>`;
                 }
@@ -198,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 inventoryTableBody.appendChild(row);
             });
             populateProductDropdown();
-        }       
+        }       
 
         function renderHistory() {
             if (!historyTableBody) return;
@@ -229,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('productName').value = productToEdit.nome;
                 document.getElementById('productQuantity').value = productToEdit.quantidade;
                 document.getElementById('productLocation').value = productToEdit.localizacao;
-                document.getElementById('submitButton').textContent = "Salvar Alterações";
+                document.getElementById('addProductBtn').textContent = "Salvar Alterações";
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
@@ -239,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 db.collection('products').doc(productId).delete()
                     .then(() => {
                         console.log("Documento excluído com sucesso!");
-                        fetchDataAndRender();
                     })
                     .catch(error => {
                         console.error("Erro ao remover documento:", error);
@@ -267,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         .then(() => {
                             console.log("Produto adicionado com sucesso!");
                             formMessage.textContent = `Produto "${productName}" adicionado com sucesso!`;
-                            fetchDataAndRender();
                         })
                         .catch(error => {
                             console.error("Erro ao adicionar produto:", error);
@@ -277,14 +272,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         .then(() => {
                             console.log("Produto atualizado com sucesso!");
                             formMessage.textContent = `Produto "${productName}" atualizado com sucesso!`;
-                            fetchDataAndRender();
                         })
                         .catch(error => {
                             console.error("Erro ao atualizar produto:", error);
                         });
                 }
                 productForm.reset();
-                document.getElementById('submitButton').textContent = "Adicionar Produto";
+                document.getElementById('addProductBtn').textContent = "Adicionar Produto";
             });
         }
 
@@ -323,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             db.collection('history').add(newHistoryItem)
                                 .then(() => {
                                     alert("Retirada registrada com sucesso!");
-                                    fetchDataAndRender();
                                 })
                                 .catch(error => {
                                     console.error("Erro ao adicionar histórico:", error);
@@ -389,7 +382,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             currentUserRole = doc.data().role;
                             console.log("Nível de acesso do usuário:", currentUserRole);
                             setupUI(currentUserRole);
-                            fetchDataAndRender();
+                            // Inicia os listeners de tempo real após carregar o nível de acesso
+                            setupRealtimeListeners();
                         } else {
                             const user = auth.currentUser;
                             alert(`Erro! Documento do usuário não encontrado. UID do usuário logado: ${user.uid}`);
