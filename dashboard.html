@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Controle de Estoque</title>
     <link rel="stylesheet" href="styles/dashboard.css">
 </head>
+
 <body>
     <header>
         <nav>
@@ -15,8 +17,10 @@
     </header>
 
     <main class="dashboard-container">
-        <h2>Gerenciar Produtos</h2>
+        
         <form id="productForm" class="product-form">
+            <h2>Gerenciar Produtos</h2>
+            <p id="formMessagem"></p>
             <input type="hidden" id="productId">
             <div class="form-group">
                 <label for="productName">Nome do Produto:</label>
@@ -31,36 +35,41 @@
                 <input type="text" id="productLocation" required placeholder="Ex: Prateleira A1, Caixa 3">
             </div>
             <div class="button-container">
-        <button type="submit" id="addProductBtn">Adicionar Produto</button>
-    </div>
+                <button type="submit" id="addProductBtn">Adicionar Produto</button>
+            </div>
         </form>
 
         <p id="formMessage"></p>
-        <div class="table-container">
+        
+        <div class="inventory-fixed-container">
             <h3>Estoque Atual</h3>
-            <table class="inventory-table">
-                <thead>
-                    <tr>
-                        <th>Nome do Produto</th>
-                        <th>Quantidade</th>
-                        <th>Localização</th>
-                        <th id="actionsHeader">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="inventoryTableBody">
-                    <tr>
-                        <td colspan="4" class="no-products">Nenhum produto cadastrado.</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-wrapper">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Nome do Produto</th>
+                            <th style="width: 20%;">Quantidade</th>
+                            <th style="width: 30%;">Localização</th>
+                            <th style="width: 20%;" id ="colum_action">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <tr>
+                            <td colspan="4" class="no-products">Nenhum produto cadastrado.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
         <div class="tabs-container">
             <div class="tabs">
-                <button class="tab-button active" onclick="showTab('withdrawals')">Registrar Retirada</button>
+                <button class="tab-button active" onclick="showTab('withdrawals')">Retirada de Produto</button>
                 <button class="tab-button" onclick="showTab('users')">Gerenciar Usuários</button>
+                <button class="tab-button" onclick="showTab('history')">Histórico de Movimentações</button>
             </div>
             <div id="withdrawals" class="tab-content active">
-                <h3>Registrar Retirada de Produto</h3>
+                <h3 id="withdrawalTitle">Registrar Retirada de Produto</h3>
                 <form id="withdrawalForm" class="product-form">
                     <div class="form-group">
                         <label for="withdrawalProductName">Produto:</label>
@@ -74,7 +83,7 @@
                         <label for="withdrawalLocation">Local de Uso:</label>
                         <input type="text" id="withdrawalLocation" required placeholder="Ex: Montagem, Manutenção">
                     </div>
-                    <button type="submit">Registrar Retirada</button>
+                    <button type="submit" id="registrar">Registrar Retirada</button>
                 </form>
             </div>
             <div id="users" class="tab-content" style="display: none;">
@@ -103,32 +112,55 @@
                     <button type="submit" id="userSubmitButton">Adicionar Usuário</button>
                 </form>
             </div>
-        </div>
-        <div id="historyTableContainer" class="table-container">
-            <h3>Histórico de Movimentações</h3>
-            <table class="history-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Usuário</th>
-                        <th>Produto</th>
-                        <th>Quantidade</th>
-                        <th>Local de Uso</th>
-                    </tr>
-                </thead>
-                <tbody id="historyTableBody">
-                    <tr>
-                        <td colspan="5" class="no-products">Nenhuma movimentação registrada.</td>
-                    </tr>
-                </tbody>
-            </table>
+            
+            <div id="history" class="tab-content">
+                <div class="history-fixed-container">
+                    <h3>Histórico de Movimentações</h3>
+                    <div class="filter-controls">
+                        <div class="form-group">
+                            <label for="filterType">Filtrar por:</label>
+                            <select id="filterType">
+                                <option value="all">Tudo</option>
+                                <option value="day">Dia</option>
+                                <option value="month">Mês</option>
+                                <option value="product">Produto</option>
+                            </select>
+                        </div>
+                        <div class="form-group sub-filter-group">
+                            <input type="date" id="filterDay" style="display: none;">
+                            <input type="month" id="filterMonth" style="display: none;">
+                            <select id="filterProduct" style="display: none;"></select>
+                        </div>
+                        <button id="applyFilterBtn">Aplicar Filtro</button>
+                        <button id="clearFilterBtn">Limpar Filtro</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;">Data</th>
+                                    <th style="width: 20%;">Usuário</th>
+                                    <th style="width: 20%;">Produto</th>
+                                    <th style="width: 15%;">Quantidade</th>
+                                    <th style="width: 25%;">Local de Uso</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr>
+                                    <td colspan="5" class="no-products">Nenhuma movimentação registrada.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
+
     <script src="scripts/main.js"></script>
 </body>
 </html>
