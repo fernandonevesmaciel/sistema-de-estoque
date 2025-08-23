@@ -38,9 +38,6 @@
                 <button type="submit" id="addProductBtn">Adicionar Produto</button>
             </div>
         </form>
-
-        <p id="formMessage"></p>
-        
         <div class="inventory-fixed-container">
             <h3>Estoque Atual</h3>
             <div class="table-wrapper">
@@ -48,9 +45,9 @@
                     <thead>
                         <tr>
                             <th style="width: 30%;">Nome do Produto</th>
-                            <th style="width: 20%;">Quantidade</th>
+                            <th style="width: 15%;">Quantidade</th>
                             <th style="width: 30%;">Localização</th>
-                            <th style="width: 20%;" id ="colum_action">Ações</th>
+                            <th style="width: 25%;" id ="colum_action">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody">
@@ -83,7 +80,7 @@
                         <label for="withdrawalLocation">Local de Uso:</label>
                         <input type="text" id="withdrawalLocation" required placeholder="Ex: Montagem, Manutenção">
                     </div>
-                    <button type="submit" id="registrar">Registrar Retirada</button>
+                    <div  class="form-group"><button type="submit" id="registrar">Registrar Retirada</button></div>
                 </form>
             </div>
             <div id="users" class="tab-content" style="display: none;">

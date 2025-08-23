@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const historyTabButton = document.querySelector('button[onclick="showTab(\'history\')"]');
             const productForm = document.querySelector('#productForm');
             const colum_action = document.querySelector('#colum_action');
-    
+
 
             if (role === 'common') {
                 if (withdrawalTabButton) withdrawalTabButton.style.display = 'none';
@@ -474,13 +474,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // --- FUNÇÃO showTab COM A ROLAGEM ADICIONADA ---
         window.showTab = function (tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
             document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+
             const clickedTabContent = document.getElementById(tabId);
-            if (clickedTabContent) clickedTabContent.style.display = 'block';
             const clickedTabButton = document.querySelector(`button[onclick="showTab('${tabId}')"]`);
-            if (clickedTabButton) clickedTabButton.classList.add('active');
+
+            if (clickedTabContent) {
+                clickedTabContent.style.display = 'block';
+                if (clickedTabButton) {
+                    clickedTabButton.classList.add('active');
+                }
+
+                // Adiciona o scroll automático para o início do conteúdo da aba
+                clickedTabContent.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
         };
 
         const logoutButton = document.querySelector('.logout-button');
