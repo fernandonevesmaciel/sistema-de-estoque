@@ -15,6 +15,19 @@ const db = firebase.firestore();
 
 // --- Lógica da página de Login e Dashboard ---
 document.addEventListener('DOMContentLoaded', () => {
+
+    const passwordToggle = document.getElementById('passwordToggle');
+    const passwordInput = document.getElementById('password');
+
+    if (passwordToggle && passwordInput) {
+        passwordToggle.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            passwordToggle.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+        });
+    }
+
+    // --- Lógica da Página de Login ---
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', (event) => {
@@ -38,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Lógica da Página de Dashboard ---
     const dashboardContainer = document.querySelector('.dashboard-container');
     if (dashboardContainer) {
         let products = [];
@@ -59,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- FUNÇÃO: setupUI() ---
         function setupUI(role) {
-            // Esconde todas as abas e desativa todos os botões no início
             document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
             document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
 
@@ -70,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const productForm = document.querySelector('#productForm');
             const colum_action = document.querySelector('#colum_action');
 
-
             if (role === 'common') {
                 if (withdrawalTabButton) withdrawalTabButton.style.display = 'none';
                 if (productTabButton) productTabButton.style.display = 'none';
@@ -79,8 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (productForm) productForm.style.display = 'none';
                 if (colum_action) colum_action.style.display = 'none';
 
-
-                // EXIBE A ABA DE RETIRADAS POR PADRÃO PARA O USUÁRIO COMUM
                 const withdrawalsTab = document.getElementById('withdrawals');
                 if (withdrawalsTab) {
                     withdrawalsTab.style.display = 'block';
@@ -93,12 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (productForm) productForm.style.display = 'block';
                 if (colum_action) colum_action.style.display = 'table-cell';
 
-                // Exibe o título e o formulário para o admin
+                const withdrawalTitle = document.querySelector('#withdrawalForm h3');
                 if (withdrawalTitle) withdrawalTitle.style.display = 'block';
                 const withdrawalForm = document.getElementById('withdrawalForm');
                 if (withdrawalForm) withdrawalForm.style.display = 'block';
 
-                // EXIBE A ABA DE PRODUTOS POR PADRÃO PARA O ADMIN
                 const productsTab = document.getElementById('products');
                 if (productsTab) {
                     productsTab.style.display = 'block';
@@ -156,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderProducts();
                 populateProductFilterDropdown();
+                populateProductDropdown(); // Adicionado para atualizar o dropdown de retirada
             }, error => {
                 console.error("Erro ao carregar produtos:", error);
             });
@@ -176,24 +186,46 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // --- Adicionado: Nova lógica para o dropdown de retirada ---
         function populateProductDropdown() {
             const productSelect = document.getElementById('withdrawalProductName');
             if (!productSelect) return;
+
             productSelect.innerHTML = '';
-            if (products.length === 0) {
+
+            const availableProducts = products.filter(p => p.quantidade > 0);
+
+            if (availableProducts.length === 0) {
                 productSelect.innerHTML = `<option value="">Nenhum produto disponível</option>`;
                 productSelect.disabled = true;
             } else {
                 productSelect.disabled = false;
-                products.forEach(product => {
+                productSelect.innerHTML = `<option value="">Selecione um produto</option>`;
+                availableProducts.forEach(product => {
                     const option = document.createElement('option');
                     option.value = product.id;
                     option.textContent = `${product.nome} (Estoque: ${product.quantidade})`;
                     productSelect.appendChild(option);
                 });
             }
-        }
 
+            // Adiciona um evento para mostrar a mensagem de estoque zerado
+            productSelect.addEventListener('change', () => {
+                const selectedProduct = products.find(p => p.id === productSelect.value);
+                const quantityInput = document.getElementById('withdrawalQuantity');
+                const message = document.getElementById('withdrawalMessage');
+
+                if (selectedProduct && selectedProduct.quantidade === 0) {
+                    message.textContent = '❌ Produto sem estoque.';
+                    message.style.color = 'red';
+                    quantityInput.disabled = true;
+                } else {
+                    message.textContent = '';
+                    quantityInput.disabled = false;
+                }
+            });
+        }
+        
         function populateProductFilterDropdown() {
             if (!filterProductSelect) return;
             filterProductSelect.innerHTML = `<option value="">Todos os Produtos</option>`;
@@ -281,37 +313,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        applyFilterBtn.addEventListener('click', () => {
-            const filterType = filterTypeSelect.value;
-            let filterValue = '';
-            if (filterType === 'day') filterValue = filterDayInput.value;
-            else if (filterType === 'month') filterValue = filterMonthInput.value;
-            else if (filterType === 'product') filterValue = filterProductSelect.value;
-            fetchAndRenderHistory({ type: filterType, value: filterValue });
-        });
+        if (applyFilterBtn) {
+            applyFilterBtn.addEventListener('click', () => {
+                const filterType = filterTypeSelect.value;
+                let filterValue = '';
+                if (filterType === 'day') filterValue = filterDayInput.value;
+                else if (filterType === 'month') filterValue = filterMonthInput.value;
+                else if (filterType === 'product') filterValue = filterProductSelect.value;
+                fetchAndRenderHistory({ type: filterType, value: filterValue });
+            });
+        }
 
-        clearFilterBtn.addEventListener('click', () => {
-            filterTypeSelect.value = 'all';
-            filterDayInput.style.display = 'none';
-            filterMonthInput.style.display = 'none';
-            filterProductSelect.style.display = 'none';
-            filterDayInput.value = '';
-            filterMonthInput.value = '';
-            filterProductSelect.value = '';
-            fetchAndRenderHistory();
-        });
+        if (clearFilterBtn) {
+            clearFilterBtn.addEventListener('click', () => {
+                filterTypeSelect.value = 'all';
+                filterDayInput.style.display = 'none';
+                filterMonthInput.style.display = 'none';
+                filterProductSelect.style.display = 'none';
+                filterDayInput.value = '';
+                filterMonthInput.value = '';
+                filterProductSelect.value = '';
+                fetchAndRenderHistory();
+            });
+        }
 
-        filterTypeSelect.addEventListener('change', (e) => {
-            const filterType = e.target.value;
-            filterDayInput.style.display = 'none';
-            filterMonthInput.style.display = 'none';
-            filterProductSelect.style.display = 'none';
-            if (filterType === 'day') filterDayInput.style.display = 'block';
-            else if (filterType === 'month') filterMonthInput.style.display = 'block';
-            else if (filterType === 'product') filterProductSelect.style.display = 'block';
-        });
+        if (filterTypeSelect) {
+            filterTypeSelect.addEventListener('change', (e) => {
+                const filterType = e.target.value;
+                filterDayInput.style.display = 'none';
+                filterMonthInput.style.display = 'none';
+                filterProductSelect.style.display = 'none';
+                if (filterType === 'day') filterDayInput.style.display = 'block';
+                else if (filterType === 'month') filterMonthInput.style.display = 'block';
+                else if (filterType === 'product') filterProductSelect.style.display = 'block';
+            });
+        }
 
-        // --- FUNÇÃO CORRIGIDA E MELHORADA ---
         window.editProduct = function (productId) {
             const productToEdit = products.find(p => p.id === productId);
             if (productToEdit) {
@@ -322,11 +359,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 document.getElementById('addProductBtn').textContent = "Salvar Alterações";
 
-                if (formMessage) { // Adiciona verificação para evitar o erro de 'null'
+                if (formMessage) {
                     formMessage.textContent = '✏️ Você está editando este item. Altere os campos e clique em "Salvar Alterações".';
                     formMessage.style.color = 'blue';
                 }
-
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         };
@@ -401,8 +437,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const withdrawalQuantity = parseInt(document.getElementById('withdrawalQuantity').value);
                 const withdrawalLocation = document.getElementById('withdrawalLocation').value;
                 const productToUpdate = products.find(p => p.id === productId);
+                const withdrawalMessage = document.getElementById('withdrawalMessage');
 
-                if (productToUpdate && productToUpdate.quantidade >= withdrawalQuantity) {
+                if (!productToUpdate) {
+                    withdrawalMessage.textContent = "Erro: Produto inválido selecionado.";
+                    withdrawalMessage.style.color = 'red';
+                    return;
+                }
+                
+                if (productToUpdate.quantidade === 0) {
+                    withdrawalMessage.textContent = "Erro: Este produto não tem estoque disponível.";
+                    withdrawalMessage.style.color = 'red';
+                    return;
+                }
+
+                if (productToUpdate.quantidade >= withdrawalQuantity) {
                     const newQuantity = productToUpdate.quantidade - withdrawalQuantity;
                     db.collection('users').doc(auth.currentUser.uid).get()
                         .then(userDoc => {
@@ -412,7 +461,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                     console.log("Estoque atualizado com sucesso!");
                                     const newHistoryItem = { date: firebase.firestore.Timestamp.now(), user: userName, productName: productToUpdate.nome, quantity: withdrawalQuantity, location: withdrawalLocation };
                                     db.collection('history').add(newHistoryItem)
-                                        .then(() => alert("Retirada registrada com sucesso!"))
+                                        .then(() => {
+                                            alert("Retirada registrada com sucesso!");
+                                            withdrawalForm.reset();
+                                            withdrawalMessage.textContent = '';
+                                        })
                                         .catch(error => console.error("Erro ao adicionar histórico:", error));
                                 })
                                 .catch(error => console.error("Erro ao atualizar estoque:", error));
@@ -422,32 +475,116 @@ document.addEventListener('DOMContentLoaded', () => {
                             alert("Erro ao registrar a retirada. Verifique o console para mais detalhes.");
                         });
                 } else {
-                    alert("Erro: Quantidade insuficiente no estoque!");
+                    withdrawalMessage.textContent = "Erro: Quantidade insuficiente no estoque!";
+                    withdrawalMessage.style.color = 'red';
                 }
-                withdrawalForm.reset();
             });
         }
 
         const userForm = document.getElementById('userForm');
         if (userForm) {
+            const userPasswordToggle = document.getElementById('userPasswordToggle');
+            const userPasswordInput = document.getElementById('userPassword');
+            const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const passwordMatchMessage = document.getElementById('passwordMatchMessage');
+            
+            // --- Adicionado: Elementos para o novo campo de senha de administrador ---
+            const adminPasswordToggle = document.getElementById('adminPasswordToggle');
+            const adminPasswordInput = document.getElementById('adminPassword');
+
+            if (userPasswordToggle && userPasswordInput) {
+                userPasswordToggle.addEventListener('click', () => {
+                    const type = userPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    userPasswordInput.setAttribute('type', type);
+                    userPasswordToggle.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+                });
+            }
+
+            if (confirmPasswordToggle && confirmPasswordInput) {
+                confirmPasswordToggle.addEventListener('click', () => {
+                    const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    confirmPasswordInput.setAttribute('type', type);
+                    confirmPasswordToggle.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+                });
+            }
+            
+            // --- Adicionado: Toggle para o campo de senha do administrador ---
+            if (adminPasswordToggle && adminPasswordInput) {
+                adminPasswordToggle.addEventListener('click', () => {
+                    const type = adminPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    adminPasswordInput.setAttribute('type', type);
+                    adminPasswordToggle.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+                });
+            }
+
+            if (userPasswordInput && confirmPasswordInput && passwordMatchMessage) {
+                userPasswordInput.addEventListener('input', checkPasswords);
+                confirmPasswordInput.addEventListener('input', checkPasswords);
+
+                function checkPasswords() {
+                    if (userPasswordInput.value === '' || confirmPasswordInput.value === '') {
+                        passwordMatchMessage.textContent = '';
+                        return;
+                    }
+                    if (userPasswordInput.value === confirmPasswordInput.value) {
+                        passwordMatchMessage.textContent = 'As senhas coincidem!';
+                        passwordMatchMessage.style.color = 'green';
+                    } else {
+                        passwordMatchMessage.textContent = 'As senhas não coincidem.';
+                        passwordMatchMessage.style.color = 'red';
+                    }
+                }
+            }
+
             userForm.addEventListener('submit', (event) => {
                 event.preventDefault();
+
+                if (userPasswordInput.value !== confirmPasswordInput.value) {
+                    alert('As senhas não coincidem. Por favor, verifique.');
+                    return;
+                }
+
                 const userName = userForm['userName'].value;
                 const userEmail = userForm['userEmail'].value;
                 const userPassword = userForm['userPassword'].value;
                 const userRole = userForm['userRole'].value;
+                
+                // --- Substituído: Lógica do prompt por getElementById ---
+                const adminPassword = document.getElementById('adminPassword').value;
+
+                // Salva a referência do usuário administrador atual
+                const adminUser = auth.currentUser;
+
                 auth.createUserWithEmailAndPassword(userEmail, userPassword)
                     .then((userCredential) => {
-                        const user = userCredential.user;
-                        console.log("Usuário criado no Auth:", user.uid);
-                        db.collection('users').doc(user.uid).set({ name: userName, email: userEmail, role: userRole })
+                        const newUser = userCredential.user;
+                        console.log("Novo usuário criado no Auth:", newUser.uid);
+
+                        db.collection('users').doc(newUser.uid).set({ name: userName, email: userEmail, role: userRole })
                             .then(() => {
-                                alert(`Usuário ${userName} adicionado com sucesso! Nível de acesso: ${userRole}`);
-                                userForm.reset();
+                                console.log("Dados do novo usuário adicionados ao Firestore.");
+                                
+                                auth.signInWithEmailAndPassword(adminUser.email, adminPassword)
+                                    .then(() => {
+                                        console.log("Administrador reautenticado com sucesso. Sessão mantida.");
+                                        alert(`Usuário ${userName} adicionado com sucesso! Nível de acesso: ${userRole}`);
+                                        userForm.reset();
+                                        passwordMatchMessage.textContent = '';
+                                        // Limpa o campo de senha do administrador após a operação
+                                        document.getElementById('adminPassword').value = '';
+                                    })
+                                    .catch(error => {
+                                        console.error("Erro ao reautenticar o administrador:", error);
+                                        alert("Erro de autenticação. Por favor, faça login novamente.");
+                                        auth.signOut(); // Desloga por segurança
+                                    });
+
                             })
                             .catch(error => {
                                 console.error("Erro ao adicionar usuário no Firestore:", error);
                                 alert("Erro ao adicionar usuário no Firestore. Verifique o console.");
+                                newUser.delete().catch(err => console.error("Erro ao remover usuário do Auth:", err));
                             });
                     })
                     .catch((error) => {
@@ -474,7 +611,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // --- FUNÇÃO showTab COM A ROLAGEM ADICIONADA ---
         window.showTab = function (tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
             document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
@@ -488,7 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     clickedTabButton.classList.add('active');
                 }
 
-                // Adiciona o scroll automático para o início do conteúdo da aba
                 clickedTabContent.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'

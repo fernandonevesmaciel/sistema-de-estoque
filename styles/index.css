@@ -111,3 +111,38 @@ footer {
     color: #777;
 }
 
+/* Container para o campo de senha e o ícone */
+.password-container {
+    position: relative; /* Essencial para que o ícone seja posicionado em relação a este contêiner */
+}
+
+/* Estiliza e posiciona o ícone de olho */
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 15px; /* Ajuste para a distância ideal da borda direita do campo */
+    /* transform: translateY(-50%); */
+    cursor: pointer;
+    user-select: none;
+    color: #888; /* Cor cinza, mais discreta */
+    font-size: 24px; /* Tamanho padrão para ícones do Material Design */
+}
+
+/* Opcional: Estilo quando o ícone está "ativo" (mostrando a senha) */
+.password-toggle.active {
+    color: #007bff; /* Ou a cor que preferir */
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.3s, box-shadow 0.3s;
+    font-family: inherit;   /* <-- força usar a mesma fonte */
+    letter-spacing: 0.1em;  /* <-- opcional: simula espaçamento de senha */
+}

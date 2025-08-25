@@ -403,11 +403,44 @@ table tbody tr:nth-child(even) {
     flex-shrink: 0;
 }
 
+/* Container para o campo de senha e o ícone */
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Posiciona o ícone de olho */
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 15px; /* Ajuste a distância da borda, se necessário */
+    transform: translateY(-50%);
+    cursor: pointer;
+    user-select: none; /* Impede a seleção do texto do ícone */
+    color: #888;
+    font-size: 24px;
+}
+
+/* Estilo para a mensagem de validação */
+#passwordMatchMessage {
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.password-container input {
+    width: 100%;              /* Faz o input ocupar toda a largura do container */
+    padding-right: 40px;      /* Espaço para o ícone de olho */
+    box-sizing: border-box;   /* Inclui padding/borda no cálculo da largura */
+}
+
+
 /* --------- RESPONSIVIDADE --------- */
 /* Ajuste para telas de tablet */
 @media (max-width: 768px) {
     header nav {
-        flex-direction: column;
+        flex-direction: row;
         gap: 15px;
     }
 

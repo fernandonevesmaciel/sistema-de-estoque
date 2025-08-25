@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Controle de Estoque</title>
     <link rel="stylesheet" href="styles/dashboard.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
@@ -17,7 +18,7 @@
     </header>
 
     <main class="dashboard-container">
-        
+
         <form id="productForm" class="product-form">
             <h2>Gerenciar Produtos</h2>
             <p id="formMessagem"></p>
@@ -47,7 +48,7 @@
                             <th style="width: 30%;">Nome do Produto</th>
                             <th style="width: 15%;">Quantidade</th>
                             <th style="width: 30%;">Localização</th>
-                            <th style="width: 25%;" id ="colum_action">Ações</th>
+                            <th style="width: 25%;" id="colum_action">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody">
@@ -66,7 +67,7 @@
                 <button class="tab-button" onclick="showTab('history')">Histórico de Movimentações</button>
             </div>
             <div id="withdrawals" class="tab-content active">
-                <h3 id="withdrawalTitle">Registrar Retirada de Produto</h3>
+                <h3>Registrar Retirada de Produto</h3>
                 <form id="withdrawalForm" class="product-form">
                     <div class="form-group">
                         <label for="withdrawalProductName">Produto:</label>
@@ -75,12 +76,15 @@
                     <div class="form-group">
                         <label for="withdrawalQuantity">Quantidade:</label>
                         <input type="number" id="withdrawalQuantity" required min="1" value="1">
+                        <p id="withdrawalMessage" class="withdrawal-message"></p>
                     </div>
                     <div class="form-group">
                         <label for="withdrawalLocation">Local de Uso:</label>
                         <input type="text" id="withdrawalLocation" required placeholder="Ex: Montagem, Manutenção">
                     </div>
-                    <div  class="form-group"><button type="submit" id="registrar">Registrar Retirada</button></div>
+                    <div class="form-group">
+                        <button type="submit" id="registrar">Registrar Retirada</button>
+                    </div>
                 </form>
             </div>
             <div id="users" class="tab-content" style="display: none;">
@@ -97,7 +101,19 @@
                     </div>
                     <div class="form-group">
                         <label for="userPassword">Senha:</label>
-                        <input type="password" id="userPassword" required placeholder="Crie uma senha para o usuário">
+                        <div class="password-container">
+                            <input type="password" id="userPassword" required
+                                placeholder="Crie uma senha para o usuário">
+                            <span class="password-toggle material-icons" id="userPasswordToggle">visibility</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar Senha:</label>
+                        <div class="password-container">
+                            <input type="password" id="confirmPassword" required placeholder="Confirme a senha">
+                            <span class="password-toggle material-icons" id="confirmPasswordToggle">visibility</span>
+                        </div>
+                        <p id="passwordMatchMessage"></p>
                     </div>
                     <div class="form-group">
                         <label for="userRole">Nível de Acesso:</label>
@@ -105,11 +121,19 @@
                             <option value="common">Usuário Comum</option>
                             <option value="admin">Administrador</option>
                         </select>
+                        <div class="form-group">
+                            <label for="adminPassword">Senha do Administrador:</label>
+                            <div class="password-container">
+                                <input type="password" id="adminPassword" required
+                                    placeholder="Sua senha de administrador">
+                                <span class="password-toggle material-icons" id="adminPasswordToggle">visibility</span>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" id="userSubmitButton">Adicionar Usuário</button>
                 </form>
             </div>
-            
+
             <div id="history" class="tab-content">
                 <div class="history-fixed-container">
                     <h3>Histórico de Movimentações</h3>
@@ -160,4 +184,5 @@
 
     <script src="scripts/main.js"></script>
 </body>
+
 </html>
