@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-        
+
         function populateProductFilterDropdown() {
             if (!filterProductSelect) return;
             filterProductSelect.innerHTML = `<option value="">Todos os Produtos</option>`;
@@ -242,20 +242,33 @@ document.addEventListener('DOMContentLoaded', () => {
             inventoryTableBody.innerHTML = '';
             products.sort((a, b) => a.nome.localeCompare(b.nome));
 
-            const actionsHeader = document.getElementById('actionsHeader');
-            if (actionsHeader) {
-                actionsHeader.style.display = currentUserRole === 'common' ? 'none' : 'table-cell';
-            }
+            let lowStockItemsCount = 0;
 
             if (products.length === 0) {
-                const colspanValue = currentUserRole === 'admin' ? 4 : 3;
+                // Aumentamos o colspan para 5 colunas agora
+                const colspanValue = currentUserRole === 'admin' ? 5 : 4;
                 inventoryTableBody.innerHTML = `<tr><td colspan="${colspanValue}" class="no-products">Nenhum produto cadastrado.</td></tr>`;
                 return;
             }
 
             products.forEach(product => {
                 const row = document.createElement('tr');
-                let rowContent = `<td>${product.nome}</td><td>${product.quantidade}</td><td>${product.localizacao}</td>`;
+
+                // Verifica se a quantidade está no valor mínimo ou abaixo
+                const minStock = product.minimo || 0;
+                const isLowStock = product.quantidade <= minStock;
+
+                if (isLowStock) lowStockItemsCount++;
+
+                const qtyClass = isLowStock ? 'class="low-stock-alert"' : '';
+                const alertIcon = isLowStock ? '⚠️' : '';
+
+                // Montagem das células (agora com 4 células de dados + ações)
+                let rowContent = `
+            <td>${product.nome}</td>
+            <td ${qtyClass}>${product.quantidade} ${alertIcon}</td>
+            <td>${minStock}</td> <td>${product.localizacao}</td>
+        `;
 
                 if (currentUserRole === 'admin') {
                     rowContent += `<td><div class="action-buttons"><button class="edit-button" onclick="editProduct('${product.id}')">Editar</button><button class="delete-button" onclick="deleteProduct('${product.id}')">Excluir</button></div></td>`;
@@ -264,9 +277,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.innerHTML = rowContent;
                 inventoryTableBody.appendChild(row);
             });
+
+            // Atualiza o banner de alerta no topo
+            const alertArea = document.getElementById('stockAlertArea');
+            if (alertArea) {
+                if (lowStockItemsCount > 0) {
+                    alertArea.innerHTML = `
+                <div class="alert-banner">
+                    <span class="material-icons">warning</span>
+                    Atenção: Existem ${lowStockItemsCount} produtos com estoque baixo ou no limite!
+                </div>`;
+                } else {
+                    alertArea.innerHTML = '';
+                }
+            }
+
             populateProductDropdown();
         }
-
         function renderHistory(filteredHistory) {
             if (!historyTableBody) return;
             historyTableBody.innerHTML = '';
@@ -356,13 +383,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('productName').value = productToEdit.nome;
                 document.getElementById('productQuantity').value = productToEdit.quantidade;
                 document.getElementById('productLocation').value = productToEdit.localizacao;
+                // Preenche o valor mínimo na edição
+                document.getElementById('productMin').value = productToEdit.minimo || 0;
 
                 document.getElementById('addProductBtn').textContent = "Salvar Alterações";
-
-                if (formMessage) {
-                    formMessage.textContent = '✏️ Você está editando este item. Altere os campos e clique em "Salvar Alterações".';
-                    formMessage.style.color = 'blue';
-                }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         };
@@ -387,43 +411,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 const productName = document.getElementById('productName').value;
                 const productQuantity = parseInt(document.getElementById('productQuantity').value);
                 const productLocation = document.getElementById('productLocation').value;
-                const productData = { nome: productName, quantidade: productQuantity, localizacao: productLocation };
+                // Captura o novo campo
+                const productMin = parseInt(document.getElementById('productMin').value) || 0;
+
+                const productData = {
+                    nome: productName,
+                    quantidade: productQuantity,
+                    minimo: productMin, // Salva no Firebase
+                    localizacao: productLocation
+                };
 
                 if (productId === '') {
                     db.collection('products').add(productData)
                         .then(() => {
-                            console.log("Produto adicionado com sucesso!");
-                            if (formMessage) {
-                                formMessage.textContent = `Produto "${productName}" adicionado com sucesso!`;
-                                formMessage.style.color = 'green';
-                            }
+                            formMessage.textContent = `Produto "${productName}" adicionado!`;
+                            formMessage.style.color = 'green';
                             productForm.reset();
-                            document.getElementById('addProductBtn').textContent = "Adicionar Produto";
                         })
-                        .catch(error => {
-                            console.error("Erro ao adicionar produto:", error);
-                            if (formMessage) {
-                                formMessage.textContent = 'Erro ao adicionar produto. Tente novamente.';
-                                formMessage.style.color = 'red';
-                            }
-                        });
+                        .catch(error => console.error("Erro:", error));
                 } else {
                     db.collection('products').doc(productId).update(productData)
                         .then(() => {
-                            console.log("Produto atualizado com sucesso!");
-                            if (formMessage) {
-                                formMessage.textContent = `Produto "${productName}" atualizado com sucesso!`;
-                                formMessage.style.color = 'green';
-                            }
+                            formMessage.textContent = `Produto "${productName}" atualizado!`;
+                            formMessage.style.color = 'green';
                             productForm.reset();
-                            document.getElementById('addProductBtn').textContent = "Adicionar Produto";
                             document.getElementById('productId').value = '';
-                        })
-                        .catch(error => {
-                            console.error("Erro ao atualizar produto:", error);
-                            if (formMessage) {
-                                formMessage.textContent = 'Erro ao atualizar produto. Tente novamente.';
-                            }
+                            document.getElementById('addProductBtn').textContent = "Adicionar Produto";
                         });
                 }
             });
@@ -444,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     withdrawalMessage.style.color = 'red';
                     return;
                 }
-                
+
                 if (productToUpdate.quantidade === 0) {
                     withdrawalMessage.textContent = "Erro: Este produto não tem estoque disponível.";
                     withdrawalMessage.style.color = 'red';
@@ -488,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const passwordMatchMessage = document.getElementById('passwordMatchMessage');
-            
+
             // --- Adicionado: Elementos para o novo campo de senha de administrador ---
             const adminPasswordToggle = document.getElementById('adminPasswordToggle');
             const adminPasswordInput = document.getElementById('adminPassword');
@@ -508,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     confirmPasswordToggle.textContent = type === 'password' ? 'visibility' : 'visibility_off';
                 });
             }
-            
+
             // --- Adicionado: Toggle para o campo de senha do administrador ---
             if (adminPasswordToggle && adminPasswordInput) {
                 adminPasswordToggle.addEventListener('click', () => {
@@ -549,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userEmail = userForm['userEmail'].value;
                 const userPassword = userForm['userPassword'].value;
                 const userRole = userForm['userRole'].value;
-                
+
                 // --- Substituído: Lógica do prompt por getElementById ---
                 const adminPassword = document.getElementById('adminPassword').value;
 
@@ -564,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         db.collection('users').doc(newUser.uid).set({ name: userName, email: userEmail, role: userRole })
                             .then(() => {
                                 console.log("Dados do novo usuário adicionados ao Firestore.");
-                                
+
                                 auth.signInWithEmailAndPassword(adminUser.email, adminPassword)
                                     .then(() => {
                                         console.log("Administrador reautenticado com sucesso. Sessão mantida.");

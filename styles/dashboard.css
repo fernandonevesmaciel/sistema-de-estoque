@@ -67,8 +67,32 @@ header h1 {
     width: 90%;
     max-width: 1100px;
     animation: fadeIn 1s ease-in-out;
-    display: flex; /* <== CORREÇÃO: Adicionado display flex para melhor controle de layout */
-    flex-direction: column; /* <== CORREÇÃO: Organiza os itens em coluna */
+    display: flex;
+    /* <== CORREÇÃO: Adicionado display flex para melhor controle de layout */
+    flex-direction: column;
+    /* <== CORREÇÃO: Organiza os itens em coluna */
+}
+
+/* Classe para destacar a quantidade em vermelho */
+.low-stock-alert {
+    color: #e74c3c !important;
+    font-weight: bold;
+    background-color: #fdf2f2;
+}
+
+/* Estilo do banner de aviso que aparece no topo do formulário */
+.alert-banner {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 @keyframes fadeIn {
@@ -93,8 +117,10 @@ header h1 {
 
 /* Formulários */
 .product-form {
-    display: flex; /* <== CORREÇÃO: Mudado de grid para flex para maior flexibilidade */
-    flex-direction: column; /* <== CORREÇÃO: Organiza os inputs verticalmente */
+    display: flex;
+    /* <== CORREÇÃO: Mudado de grid para flex para maior flexibilidade */
+    flex-direction: column;
+    /* <== CORREÇÃO: Organiza os inputs verticalmente */
     gap: 20px;
     margin-bottom: 30px;
     background: #f8f9fa;
@@ -169,7 +195,8 @@ button:active {
     box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
     height: 50vh;
     overflow-y: auto;
-    overflow-x: hidden; /* <== CORREÇÃO: Esconde a rolagem horizontal da tabela */
+    overflow-x: hidden;
+    /* <== CORREÇÃO: Esconde a rolagem horizontal da tabela */
     -webkit-overflow-scrolling: touch;
 }
 
@@ -178,7 +205,8 @@ table {
     border-collapse: separate;
     border-spacing: 0;
     background: #fff;
-    table-layout: auto; /* <== CORREÇÃO: Alterado de fixed para auto para melhor ajuste de conteúdo */
+    table-layout: auto;
+    /* <== CORREÇÃO: Alterado de fixed para auto para melhor ajuste de conteúdo */
 }
 
 table thead th {
@@ -198,7 +226,8 @@ table td {
     padding: 12px 10px;
     border-bottom: 1px solid #e9ecef;
     text-align: center;
-    word-break: break-word; /* <== CORREÇÃO: Para quebrar palavras longas */
+    word-break: break-word;
+    /* <== CORREÇÃO: Para quebrar palavras longas */
 }
 
 table tbody tr:nth-child(even) {
@@ -235,7 +264,8 @@ table tbody tr:nth-child(even) {
 
 .history-table {
     width: 100%;
-    table-layout: fixed; /* <== Adicionado para melhor ajuste */
+    table-layout: fixed;
+    /* <== Adicionado para melhor ajuste */
 }
 
 .history-table th,
@@ -323,19 +353,23 @@ table tbody tr:nth-child(even) {
 
 .action-buttons {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Altera para linha para ficarem lado a lado */
     justify-content: center;
-    gap: 8px;
+    gap: 10px; /* Espaçamento entre os botões */
+    flex-wrap: nowrap; /* Impede que eles quebrem linha em telas grandes */
 }
 
 .action-buttons button {
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 8px 12px;
+    font-size: 13px;
+    white-space: nowrap; /* Impede que o texto "EDITAR" quebre dentro do botão */
+    width: auto; /* Deixa o botão ajustar ao texto */
+    min-width: 80px; /* Garante um tamanho mínimo confortável */
 }
-
 /* Estilos para os botões de ação */
 .edit-button {
-    background: linear-gradient(45deg, #007bff, #0056b3); /* Azul para EDITAR */
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    /* Azul para EDITAR */
     color: #fff;
     border: none;
     padding: 8px 16px;
@@ -351,7 +385,8 @@ table tbody tr:nth-child(even) {
 }
 
 .delete-button {
-    background: linear-gradient(45deg, #dc3545, #b32a35); /* Vermelho para EXCLUIR */
+    background: linear-gradient(45deg, #dc3545, #b32a35);
+    /* Vermelho para EXCLUIR */
     color: #fff;
     border: none;
     padding: 8px 16px;
@@ -413,10 +448,12 @@ table tbody tr:nth-child(even) {
 .password-toggle {
     position: absolute;
     top: 50%;
-    right: 15px; /* Ajuste a distância da borda, se necessário */
+    right: 15px;
+    /* Ajuste a distância da borda, se necessário */
     transform: translateY(-50%);
     cursor: pointer;
-    user-select: none; /* Impede a seleção do texto do ícone */
+    user-select: none;
+    /* Impede a seleção do texto do ícone */
     color: #888;
     font-size: 24px;
 }
@@ -430,9 +467,12 @@ table tbody tr:nth-child(even) {
 }
 
 .password-container input {
-    width: 100%;              /* Faz o input ocupar toda a largura do container */
-    padding-right: 40px;      /* Espaço para o ícone de olho */
-    box-sizing: border-box;   /* Inclui padding/borda no cálculo da largura */
+    width: 100%;
+    /* Faz o input ocupar toda a largura do container */
+    padding-right: 40px;
+    /* Espaço para o ícone de olho */
+    box-sizing: border-box;
+    /* Inclui padding/borda no cálculo da largura */
 }
 
 
@@ -536,8 +576,10 @@ table tbody tr:nth-child(even) {
     }
 
     .action-buttons {
-        flex-direction: column; /* Coloca os botões um embaixo do outro */
-        gap: 5px; /* Espaço menor entre os botões */
+        flex-direction: column;
+        /* Coloca os botões um embaixo do outro */
+        gap: 5px;
+        /* Espaço menor entre os botões */
     }
 
     .action-buttons button {
