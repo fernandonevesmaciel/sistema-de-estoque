@@ -59,6 +59,29 @@ document.addEventListener('DOMContentLoaded', () => {
         let users = [];
         let currentUserRole = '';
 
+        // --- Lógica de busca automática por código ---
+        const withdrawalCodeInput = document.getElementById('withdrawalProductCode');
+        const displayProductName = document.getElementById('displayProductName');
+        const withdrawalProductIdHidden = document.getElementById('withdrawalProductId');
+
+        if (withdrawalCodeInput) {
+            withdrawalCodeInput.addEventListener('input', (e) => {
+                const typedCode = e.target.value.trim();
+                // Procura no array local de produtos o item que tem o código digitado
+                const found = products.find(p => p.codigo === typedCode);
+
+                if (found) {
+                    displayProductName.textContent = `✅ Produto: ${found.nome}`;
+                    displayProductName.style.color = "green";
+                    withdrawalProductIdHidden.value = found.id; // Salva o ID para o Firebase
+                } else {
+                    displayProductName.textContent = typedCode ? "❌ Código não encontrado" : "";
+                    displayProductName.style.color = "red";
+                    withdrawalProductIdHidden.value = ""; // Limpa o ID
+                }
+            });
+        }
+
         const inventoryTableBody = document.getElementById('inventoryTableBody');
         const historyTableBody = document.getElementById('historyTableBody');
         const formMessage = document.getElementById('formMessagem');
@@ -254,7 +277,6 @@ document.addEventListener('DOMContentLoaded', () => {
             products.forEach(product => {
                 const row = document.createElement('tr');
 
-                // Verifica se a quantidade está no valor mínimo ou abaixo
                 const minStock = product.minimo || 0;
                 const isLowStock = product.quantidade <= minStock;
 
@@ -263,12 +285,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const qtyClass = isLowStock ? 'class="low-stock-alert"' : '';
                 const alertIcon = isLowStock ? '⚠️' : '';
 
-                // Montagem das células (agora com 4 células de dados + ações)
+                // AJUSTE AQUI: Adicione a célula do código (product.codigo)
+                // Verifique se no Firebase o nome do campo é 'codigo'. 
+                // Se for 'productCode', mude para product.productCode
                 let rowContent = `
-            <td>${product.nome}</td>
-            <td ${qtyClass}>${product.quantidade} ${alertIcon}</td>
-            <td>${minStock}</td> <td>${product.localizacao}</td>
-        `;
+                                    <td>${product.codigo || 'N/A'}</td> 
+                                    <td>${product.nome}</td>
+                                    <td ${qtyClass}>${product.quantidade} ${alertIcon}</td>
+                                    <td>${minStock}</td> 
+                                    <td>${product.localizacao}</td>
+                                `;
 
                 if (currentUserRole === 'admin') {
                     rowContent += `<td><div class="action-buttons"><button class="edit-button" onclick="editProduct('${product.id}')">Editar</button><button class="delete-button" onclick="deleteProduct('${product.id}')">Excluir</button></div></td>`;
@@ -277,7 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.innerHTML = rowContent;
                 inventoryTableBody.appendChild(row);
             });
-
             // Atualiza o banner de alerta no topo
             const alertArea = document.getElementById('stockAlertArea');
             if (alertArea) {
@@ -413,8 +438,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const productLocation = document.getElementById('productLocation').value;
                 // Captura o novo campo
                 const productMin = parseInt(document.getElementById('productMin').value) || 0;
+                const productCode = document.getElementById('productCode').value;
 
                 const productData = {
+                    codigo: productCode,
                     nome: productName,
                     quantidade: productQuantity,
                     minimo: productMin, // Salva no Firebase
@@ -446,47 +473,46 @@ document.addEventListener('DOMContentLoaded', () => {
         if (withdrawalForm) {
             withdrawalForm.addEventListener('submit', (event) => {
                 event.preventDefault();
-                const productId = document.getElementById('withdrawalProductName').value;
+
+                // Agora pegamos o ID do campo oculto preenchido pela busca
+                const productId = document.getElementById('withdrawalProductId').value;
                 const withdrawalQuantity = parseInt(document.getElementById('withdrawalQuantity').value);
                 const withdrawalLocation = document.getElementById('withdrawalLocation').value;
-                const productToUpdate = products.find(p => p.id === productId);
                 const withdrawalMessage = document.getElementById('withdrawalMessage');
 
-                if (!productToUpdate) {
-                    withdrawalMessage.textContent = "Erro: Produto inválido selecionado.";
-                    withdrawalMessage.style.color = 'red';
+                // Validação se o produto foi encontrado
+                if (!productId) {
+                    alert("Erro: Digite um código de produto válido.");
                     return;
                 }
 
-                if (productToUpdate.quantidade === 0) {
-                    withdrawalMessage.textContent = "Erro: Este produto não tem estoque disponível.";
-                    withdrawalMessage.style.color = 'red';
-                    return;
-                }
+                const productToUpdate = products.find(p => p.id === productId);
 
                 if (productToUpdate.quantidade >= withdrawalQuantity) {
                     const newQuantity = productToUpdate.quantidade - withdrawalQuantity;
-                    db.collection('users').doc(auth.currentUser.uid).get()
-                        .then(userDoc => {
-                            let userName = userDoc.exists && userDoc.data().name ? userDoc.data().name : auth.currentUser.email;
-                            db.collection('products').doc(productId).update({ quantidade: newQuantity })
-                                .then(() => {
-                                    console.log("Estoque atualizado com sucesso!");
-                                    const newHistoryItem = { date: firebase.firestore.Timestamp.now(), user: userName, productName: productToUpdate.nome, quantity: withdrawalQuantity, location: withdrawalLocation };
-                                    db.collection('history').add(newHistoryItem)
-                                        .then(() => {
-                                            alert("Retirada registrada com sucesso!");
-                                            withdrawalForm.reset();
-                                            withdrawalMessage.textContent = '';
-                                        })
-                                        .catch(error => console.error("Erro ao adicionar histórico:", error));
-                                })
-                                .catch(error => console.error("Erro ao atualizar estoque:", error));
-                        })
-                        .catch(error => {
-                            console.error("Erro ao buscar informações do usuário:", error);
-                            alert("Erro ao registrar a retirada. Verifique o console para mais detalhes.");
+
+                    db.collection('users').doc(auth.currentUser.uid).get().then(userDoc => {
+                        let userName = userDoc.exists && userDoc.data().name ? userDoc.data().name : auth.currentUser.email;
+
+                        db.collection('products').doc(productId).update({ quantidade: newQuantity }).then(() => {
+
+                            // SALVANDO NO HISTÓRICO: Aqui unimos Nome + Código
+                            const newHistoryItem = {
+                                date: firebase.firestore.Timestamp.now(),
+                                user: userName,
+                                productName: `${productToUpdate.nome} (${productToUpdate.codigo})`, // Ex: Parafuso (PRD001)
+                                quantity: withdrawalQuantity,
+                                location: withdrawalLocation
+                            };
+
+                            db.collection('history').add(newHistoryItem).then(() => {
+                                alert("Retirada registrada com sucesso!");
+                                withdrawalForm.reset();
+                                displayProductName.textContent = ""; // Limpa o nome exibido
+                                withdrawalMessage.textContent = '';
+                            }).catch(error => console.error("Erro ao adicionar histórico:", error));
                         });
+                    });
                 } else {
                     withdrawalMessage.textContent = "Erro: Quantidade insuficiente no estoque!";
                     withdrawalMessage.style.color = 'red';

@@ -30,6 +30,10 @@
                 <input type="text" id="productName" required placeholder="Ex: Parafuso Philips 5mm">
             </div>
             <div class="form-group">
+                <label for="productCode">Código do Produto:</label>
+                <input type="text" id="productCode" required placeholder="Ex: PRD001">
+            </div>
+            <div class="form-group">
                 <label for="productQuantity">Quantidade:</label>
                 <input type="number" id="productQuantity" required min="0" value="0">
             </div>
@@ -51,10 +55,11 @@
                 <table class="inventory-table">
                     <thead>
                         <tr>
-                            <th style="width: 25%;">Nome do Produto</th>
+                            <th style="width: 15%;">Código</th>
+                            <th style="width: 20%;">Nome do Produto</th>
                             <th style="width: 15%;">Quantidade</th>
                             <th style="width: 15%;">Mínimo</th>
-                            <th style="width: 25%;">Localização</th>
+                            <th style="width: 15%;">Localização</th>
                             <th style="width: 20%;" id="colum_action">Ações</th>
                         </tr>
                     </thead>
@@ -74,8 +79,10 @@
                 <h3>Registrar Retirada de Produto</h3>
                 <form id="withdrawalForm" class="product-form">
                     <div class="form-group">
-                        <label for="withdrawalProductName">Produto:</label>
-                        <select id="withdrawalProductName" required></select>
+                        <label for="withdrawalProductCode">Código do Produto:</label>
+                        <input type="text" id="withdrawalProductCode" required placeholder="Digite o código do produto">
+                        <div id="displayProductName" style="margin-top: 8px; font-weight: bold; color: #4a90e2;"></div>
+                        <input type="hidden" id="withdrawalProductId">
                     </div>
                     <div class="form-group">
                         <label for="withdrawalQuantity">Quantidade:</label>
