@@ -353,19 +353,26 @@ table tbody tr:nth-child(even) {
 
 .action-buttons {
     display: flex;
-    flex-direction: row; /* Altera para linha para ficarem lado a lado */
+    flex-direction: row;
+    /* Altera para linha para ficarem lado a lado */
     justify-content: center;
-    gap: 10px; /* Espaçamento entre os botões */
-    flex-wrap: nowrap; /* Impede que eles quebrem linha em telas grandes */
+    gap: 10px;
+    /* Espaçamento entre os botões */
+    flex-wrap: nowrap;
+    /* Impede que eles quebrem linha em telas grandes */
 }
 
 .action-buttons button {
     padding: 8px 12px;
     font-size: 13px;
-    white-space: nowrap; /* Impede que o texto "EDITAR" quebre dentro do botão */
-    width: auto; /* Deixa o botão ajustar ao texto */
-    min-width: 80px; /* Garante um tamanho mínimo confortável */
+    white-space: nowrap;
+    /* Impede que o texto "EDITAR" quebre dentro do botão */
+    width: auto;
+    /* Deixa o botão ajustar ao texto */
+    min-width: 80px;
+    /* Garante um tamanho mínimo confortável */
 }
+
 /* Estilos para os botões de ação */
 .edit-button {
     background: linear-gradient(45deg, #007bff, #0056b3);
@@ -475,6 +482,34 @@ table tbody tr:nth-child(even) {
     /* Inclui padding/borda no cálculo da largura */
 }
 
+.search-container {
+    width: 98%;
+    /* Ocupa 90% da largura da tela */
+    max-width: 1000px;
+    /* Não deixa o campo ficar gigante em telas de PC */
+    margin: 20px auto;
+    /* 20px de espaço em cima/baixo e AUTO nas laterais para centralizar */
+    box-sizing: border-box;
+    /* Essencial para o cálculo de largura não quebrar no celular */
+}
+
+.search-container .form-group {
+    width: 100%;
+    position: relative;
+    /* Permite posicionar ícones dentro do input se desejar */
+}
+
+#inventorySearch {
+    width: 100%;
+    /* Ocupa todo o espaço do container centralizado */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    /* Tamanho ideal para evitar zoom indesejado no celular */
+    box-sizing: border-box;
+    /* Garante que o input respeite o limite do container */
+}
 
 /* --------- RESPONSIVIDADE --------- */
 /* Ajuste para telas de tablet */
@@ -626,5 +661,11 @@ table tbody tr:nth-child(even) {
         display: flex;
         flex-flow: column;
         padding: 12px;
+    }
+
+    .search-container {
+        width: 90%;
+        max-width: 600px;
+
     }
 }

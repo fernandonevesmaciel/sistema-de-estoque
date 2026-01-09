@@ -262,18 +262,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function renderProducts() {
             if (!inventoryTableBody) return;
+
+            // Seleciona o campo de busca (se ele existir) para limpar ou manter o filtro
+            const inventorySearchInput = document.getElementById('inventorySearch');
+
+            // Opcional: Limpar a busca toda vez que os dados mudarem no banco
+            // Se preferir que o filtro permaneça enquanto você edita, remova a linha abaixo
+            if (inventorySearchInput) inventorySearchInput.value = '';
+
             inventoryTableBody.innerHTML = '';
+
+            // Ordena os produtos por nome (A-Z)
             products.sort((a, b) => a.nome.localeCompare(b.nome));
 
             let lowStockItemsCount = 0;
 
+            // Se não houver produtos
             if (products.length === 0) {
-                // Aumentamos o colspan para 5 colunas agora
-                const colspanValue = currentUserRole === 'admin' ? 5 : 4;
+                // Colspan de 6 (Código, Nome, Qtd, Mínimo, Localização, Ações)
+                const colspanValue = currentUserRole === 'admin' ? 6 : 5;
                 inventoryTableBody.innerHTML = `<tr><td colspan="${colspanValue}" class="no-products">Nenhum produto cadastrado.</td></tr>`;
                 return;
             }
 
+            // Renderiza cada linha da tabela
             products.forEach(product => {
                 const row = document.createElement('tr');
 
@@ -285,25 +297,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 const qtyClass = isLowStock ? 'class="low-stock-alert"' : '';
                 const alertIcon = isLowStock ? '⚠️' : '';
 
-                // AJUSTE AQUI: Adicione a célula do código (product.codigo)
-                // Verifique se no Firebase o nome do campo é 'codigo'. 
-                // Se for 'productCode', mude para product.productCode
+                // Estrutura das células (TDs)
                 let rowContent = `
-                                    <td>${product.codigo || 'N/A'}</td> 
-                                    <td>${product.nome}</td>
-                                    <td ${qtyClass}>${product.quantidade} ${alertIcon}</td>
-                                    <td>${minStock}</td> 
-                                    <td>${product.localizacao}</td>
-                                `;
+            <td>${product.codigo || 'N/A'}</td> 
+            <td>${product.nome}</td>
+            <td ${qtyClass}>${product.quantidade} ${alertIcon}</td>
+            <td>${minStock}</td> 
+            <td>${product.localizacao || 'Não definida'}</td>
+        `;
 
+                // Adiciona botões de ação apenas para administradores
                 if (currentUserRole === 'admin') {
-                    rowContent += `<td><div class="action-buttons"><button class="edit-button" onclick="editProduct('${product.id}')">Editar</button><button class="delete-button" onclick="deleteProduct('${product.id}')">Excluir</button></div></td>`;
+                    rowContent += `
+                <td>
+                    <div class="action-buttons">
+                        <button class="edit-button" onclick="editProduct('${product.id}')">Editar</button>
+                        <button class="delete-button" onclick="deleteProduct('${product.id}')">Excluir</button>
+                    </div>
+                </td>`;
+                } else {
+                    // Adiciona uma célula vazia ou remove a coluna se não for admin
+                    // Para manter a estrutura da tabela correta:
+                    rowContent += `<td>-</td>`;
                 }
 
                 row.innerHTML = rowContent;
                 inventoryTableBody.appendChild(row);
             });
-            // Atualiza o banner de alerta no topo
+
+            // Atualiza o banner de alerta de estoque baixo
             const alertArea = document.getElementById('stockAlertArea');
             if (alertArea) {
                 if (lowStockItemsCount > 0) {
@@ -317,6 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // Atualiza os seletores de produtos em outras abas
             populateProductDropdown();
         }
         function renderHistory(filteredHistory) {
@@ -676,5 +699,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 auth.signOut().then(() => window.location.href = 'index.html').catch(error => console.error("Erro ao fazer logout:", error));
             });
         }
+    }
+
+    const inventorySearchInput = document.getElementById('inventorySearch');
+
+    if (inventorySearchInput) {
+        inventorySearchInput.addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase(); // O que o usuário digitou (em minúsculo)
+            const rows = document.querySelectorAll('#inventoryTableBody tr');
+
+            rows.forEach(row => {
+                // Pegamos o texto da coluna Código (índice 0) e Nome (índice 1)
+                const codeColumn = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
+                const nameColumn = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+
+                // Se o termo estiver em qualquer uma das duas colunas, mostra a linha
+                if (codeColumn.includes(term) || nameColumn.includes(term)) {
+                    row.style.display = ""; // Mostra
+                } else {
+                    // Se for a linha de "Nenhum produto", não escondemos se a tabela estiver vazia
+                    if (!row.classList.contains('no-products')) {
+                        row.style.display = "none"; // Esconde
+                    }
+                }
+            });
+        });
     }
 });
